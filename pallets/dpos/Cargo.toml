@@ -1,0 +1,48 @@
+[package]
+name = "pallet-dpos"
+version = "4.0.0-dev"
+description = "FRAME pallet template for defining custom runtime logic."
+authors = ["Substrate DevHub <https://github.com/substrate-developer-hub>"]
+homepage = "https://substrate.io"
+edition = "2021"
+publish = false
+repository = "https://github.com/substrate-developer-hub/substrate-node-template/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "3.6.1", default-features = false, features = [
+	"derive",
+] }
+scale-info = { version = "2.11.1", default-features = false, features = [
+	"derive",
+] }
+
+frame-benchmarking = { version = "34.0.0", default-features = false, optional = true }
+frame-support = { version = "34.0.0", default-features = false }
+frame-system = { version = "34.0.0", default-features = false }
+
+sp-core = { version = "33.0.1", default-features = false }
+sp-io = { version = "36.0.0", default-features = false }
+sp-runtime = { version = "37.0.0", default-features = false }
+sp-std = { version = "14.0.0", default-features = false }
+
+[dev-dependencies]
+pallet-balances = { version = "35.0.0" }
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"frame-benchmarking?/std",
+	"frame-support/std",
+	"frame-system/std",
+	"scale-info/std",
+	"sp-runtime/std",
+	"sp-io/std",
+	"sp-core/std",
+	"sp-std/std",
+]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
+try-runtime = ["frame-support/try-runtime"]

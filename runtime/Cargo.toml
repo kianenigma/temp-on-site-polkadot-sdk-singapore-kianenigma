@@ -1,0 +1,102 @@
+[package]
+name = "pba-runtime"
+description = "A solochain runtime template built with Substrate, part of Polkadot Sdk. (polkadot v1.11.0)"
+version = "0.1.0"
+license = "MIT-0"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+parity-scale-codec = { version = "3.0.0", default-features = false }
+scale-info = { version = "2.6.0", default-features = false }
+
+# this is a frame-based runtime, thus importing `frame` with runtime feature enabled.
+frame = { version = "0.3.0", package = "polkadot-sdk-frame", default-features = false, features = [
+	"experimental",
+	"runtime",
+] }
+
+# pallets that we want to use
+pallet-balances = { version = "35.0.0", default-features = false }
+pallet-timestamp = { version = "33.0.0", default-features = false }
+pallet-sudo = { version = "34.0.0", default-features = false }
+pallet-transaction-payment = { version = "34.0.0", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { version = "34.0.0", default-features = false }
+
+pallet-assets = { version = "35.0.0", default-features = false }
+
+# genesis builder that allows us to interact with runtime genesis config
+sp-genesis-builder = { version = "0.13.0", default-features = false }
+sp-runtime = { version = "37.0.0", default-features = false, features = [
+	"serde",
+] }
+
+# local pallets
+pallet-dpos = { path = "../pallets/dpos", default-features = false }
+pallet-multisig = { path = "../pallets/multisig", default-features = false }
+pallet-treasury = { path = "../pallets/treasury", default-features = false }
+pallet-free-tx = { path = "../pallets/free-tx", default-features = false }
+
+[build-dependencies]
+substrate-wasm-builder = { version = "22.0.0", optional = true }
+
+[features]
+default = ["std"]
+std = [
+	"parity-scale-codec/std",
+	"scale-info/std",
+
+	"frame/std",
+
+	"pallet-balances/std",
+	"pallet-sudo/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
+	"pallet-timestamp/std",
+
+	"pallet-assets/std",
+
+	"pallet-dpos/std",
+	"pallet-multisig/std",
+	"pallet-treasury/std",
+	"pallet-free-tx/std",
+
+	"sp-genesis-builder/std",
+	"sp-runtime/std",
+	"substrate-wasm-builder",
+]
+runtime-benchmarks = [
+	"frame/runtime-benchmarks",
+
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-assets/runtime-benchmarks",
+
+	"pallet-dpos/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
+	"pallet-free-tx/runtime-benchmarks",
+
+	"sp-runtime/runtime-benchmarks",
+]
+try-runtime = [
+	"frame/try-runtime",
+
+	"pallet-balances/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+
+	"pallet-assets/try-runtime",
+
+	"pallet-dpos/try-runtime",
+	"pallet-multisig/try-runtime",
+	"pallet-treasury/try-runtime",
+	"pallet-free-tx/try-runtime",
+
+	"sp-runtime/try-runtime",
+]
