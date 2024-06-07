@@ -70,6 +70,9 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// We usually use passive tense for events.
 		SomethingStored { something: u32, who: T::AccountId },
+		/// Emit an event which shows the call weight. For example purposes only, this wouldn't
+		/// make sense in any real code.
+		CallWeight { weight: Weight },
 	}
 
 	/// Errors inform users that something went wrong.
@@ -130,8 +133,15 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// Get the weight of the call inputted by the user.
+			let call_weight = call.get_dispatch_info().weight;
+
 			// Re-dispatch some call on behalf of the caller.
 			let res = call.dispatch(RawOrigin::Signed(who).into());
+
+			// Here is some simple logic to show an example of "using" the `call` weight.
+			// This really doesn't make sense to do except for as an example.
+			Self::deposit_event(Event::<T>::CallWeight { weight: call_weight });
 
 			// Turn the result from the `dispatch` into our expected `DispatchResult` type.
 			res.map(|_| ()).map_err(|e| e.error)
