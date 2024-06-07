@@ -141,9 +141,9 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			/// The amount of weight credit the user has.
-			let credit: Weight = todo!();
-			if credit >= call.get_dispatch_info() {
+			// The amount of weight credit the user has.
+			let credit: Weight = Weight::default(); // TODO, actually store and get some weight credit
+			if credit.all_gt(call.get_dispatch_info().weight) {
 				// user has enough credit
 			} else {
 				// does not have enough credit
