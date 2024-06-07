@@ -94,6 +94,9 @@ impl pallet_dpos::Config for Test {
 	type MaxValidators = MaxValidators;
 	type FindAuthor = AlwaysSeven;
 	type ReportNewValidatorSet = DoNothing;
+	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
+	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE
+	type EpochDuration = ConstU64<100>;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

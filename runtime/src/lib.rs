@@ -230,6 +230,9 @@ impl pallet_dpos::Config for Runtime {
 	type MaxValidators = MaxValidators;
 	type FindAuthor = BlockAuthor;
 	type ReportNewValidatorSet = StoreNewValidatorSet;
+	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
+	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE
+	type EpochDuration = ConstU32<100>;
 }
 
 /// Configure the pallet-treasury in pallets/treasury.

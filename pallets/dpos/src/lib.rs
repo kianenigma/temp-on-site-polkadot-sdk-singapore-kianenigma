@@ -18,6 +18,7 @@ mod benchmarking;
 pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
+		sp_runtime::traits::Zero,
 		traits::{fungible, FindAuthor},
 	};
 	use frame_system::pallet_prelude::*;
@@ -59,6 +60,13 @@ pub mod pallet {
 		/// Report the new validators to the runtime. This is done through a custom trait defined in
 		/// this pallet.
 		type ReportNewValidatorSet: ReportNewValidatorSet<Self::AccountId>;
+
+		/// We use a configurable constant `BlockNumber` to tell us when we should trigger the
+		/// validator set change. The runtime developer should implement this to represent the time
+		/// they want validators to change, but for your pallet, you just care about the block
+		/// number.
+		#[pallet::constant]
+		type EpochDuration: Get<BlockNumberFor<Self>>;
 	}
 
 	/// The pallet's storage items.
@@ -68,6 +76,20 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<Value = u32>;
 	#[pallet::storage]
 	pub type SomethingMap<T: Config> = StorageMap<Key = T::AccountId, Value = BlockNumberFor<T>>;
+
+	/// Take note of the different attributes needed on a custom structure so that it can be used in
+	/// storage. You can add other derives if you need...
+	#[derive(TypeInfo, Encode, Decode, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	pub struct DelegationInfo<T: Config> {
+		// The validator who is getting the delegation
+		pub who: T::AccountId,
+		// The amount being delegated
+		pub amount: BalanceOf<T>,
+	}
+
+	#[pallet::storage]
+	pub type Delegations<T: Config> = StorageMap<Key = T::AccountId, Value = DelegationInfo<T>>;
 
 	/// Pallets use events to inform users when important changes are made.
 	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
@@ -83,6 +105,22 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		TooManyValidators,
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_initialize(n: BlockNumberFor<T>) -> Weight {
+			// This is a pretty lightweight check that we do EVERY block, but then tells us when an
+			// Epoch has passed...
+			if n % T::EpochDuration::get() == BlockNumberFor::<T>::zero() {
+				// CHANGE VALIDATORS LOGIC
+				// You cannot return an error here, so you have to be clever with your code...
+			}
+
+			// We return a default weight because we do not expect you to do weights for your
+			// project... Except for extra credit...
+			return Weight::default()
+		}
 	}
 
 	/// Dispatchable functions allows users to interact with the pallet and invoke state changes.
