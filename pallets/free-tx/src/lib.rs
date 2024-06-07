@@ -141,6 +141,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			/// The amount of weight credit the user has.
+			let credit: Weight = todo!();
+			if credit >= call.get_dispatch_info() {
+				// user has enough credit
+			} else {
+				// does not have enough credit
+			}
+
 			// Re-dispatch some call on behalf of the caller.
 			let res = call.dispatch(RawOrigin::Signed(who).into());
 
