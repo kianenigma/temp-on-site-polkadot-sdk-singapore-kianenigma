@@ -17,7 +17,11 @@ mod benchmarking;
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
 	use crate::*;
-	use frame_support::{dispatch::GetDispatchInfo, pallet_prelude::*, traits::fungible};
+	use frame_support::{
+		dispatch::GetDispatchInfo,
+		pallet_prelude::*,
+		traits::{fungible, fungible::MutateHold, tokens::Precision},
+	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
 	use sp_runtime::traits::Dispatchable;
 	use sp_std::prelude::*;
@@ -40,7 +44,8 @@ pub mod pallet {
 		type NativeBalance: fungible::Inspect<Self::AccountId>
 			+ fungible::Mutate<Self::AccountId>
 			+ fungible::hold::Inspect<Self::AccountId>
-			+ fungible::hold::Mutate<Self::AccountId>
+			// You need to tell your trait bounds that the `Reason` is `RuntimeHoldReason`.
+			+ fungible::hold::Mutate<Self::AccountId, Reason = Self::RuntimeHoldReason>
 			+ fungible::freeze::Inspect<Self::AccountId>
 			+ fungible::freeze::Mutate<Self::AccountId>;
 
@@ -51,6 +56,23 @@ pub mod pallet {
 				RuntimeOrigin = Self::RuntimeOrigin,
 				PostInfo = frame_support::dispatch::PostDispatchInfo,
 			> + GetDispatchInfo;
+
+		/// This allows a runtime developer to configure some constant "HoldAmount" balance, which
+		/// can be used in the extrinsic logic.
+		#[pallet::constant]
+		type HoldAmount: Get<BalanceOf<Self>>;
+
+		/// Overarching hold reason. Our `HoldReason` below will become a part of this "Outer Enum"
+		/// thanks to the `#[runtime]` macro.
+		type RuntimeHoldReason: From<HoldReason>;
+	}
+
+	/// A reason for the pallet placing a hold on funds.
+	#[pallet::composite_enum]
+	pub enum HoldReason {
+		/// Funds are held to register for free transactions.
+		#[codec(index = 0)]
+		FreeTxHold,
 	}
 
 	/// The pallet's storage items.
@@ -60,6 +82,11 @@ pub mod pallet {
 	pub type Something<T> = StorageValue<Value = u32>;
 	#[pallet::storage]
 	pub type SomethingMap<T: Config> = StorageMap<Key = T::AccountId, Value = BlockNumberFor<T>>;
+
+	// We use this storage to keep track of the balances held by our pallet. Generally a best
+	// practice.
+	#[pallet::storage]
+	pub type AmountHeld<T: Config> = StorageMap<Key = T::AccountId, Value = BalanceOf<T>>;
 
 	/// Pallets use events to inform users when important changes are made.
 	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
@@ -78,6 +105,10 @@ pub mod pallet {
 		TxFailed,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
+		/// A user is trying to hold funds when they already have held funds.
+		AlreadyHeld,
+		/// A user is trying to release funds when they have no held funds.
+		NothingHeld,
 	}
 
 	/// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -115,6 +146,33 @@ pub mod pallet {
 
 			// Turn the result from the `dispatch` into our expected `DispatchResult` type.
 			res.map(|_| ()).map_err(|e| e.error)
+		}
+
+		/// This function will hold the balance of some user, and track how much is held locally.
+		pub fn hold_my_funds(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			// Only hold the funds of a user which has no holds already.
+			ensure!(AmountHeld::<T>::get(&who).is_none(), Error::<T>::AlreadyHeld);
+			T::NativeBalance::hold(&HoldReason::FreeTxHold.into(), &who, T::HoldAmount::get())?;
+			// Store the amount held in our local storage.
+			AmountHeld::<T>::insert(who, T::HoldAmount::get());
+			Ok(())
+		}
+
+		/// This function will release the held balance of some user.
+		pub fn release_my_funds(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			// Get the amount held by our system.
+			// We call the `take` api so it also deletes the storage.
+			let amount_held = AmountHeld::<T>::take(&who).ok_or(Error::<T>::NothingHeld)?;
+			// NOTE: I am NOT using `T::HoldAmount::get()`... Why is that important?
+			T::NativeBalance::release(
+				&HoldReason::FreeTxHold.into(),
+				&who,
+				amount_held,
+				Precision::BestEffort,
+			)?;
+			Ok(())
 		}
 	}
 

@@ -185,6 +185,8 @@ impl pallet_free_tx::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type RuntimeCall = RuntimeCall;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type HoldAmount = ConstU128<69420>;
 }
 
 parameter_types! {
