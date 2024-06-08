@@ -21,6 +21,7 @@ use frame::{
 	traits::{FindAuthor, One},
 };
 use pallet_transaction_payment::{ConstFeeMultiplier, FeeDetails, Multiplier, RuntimeDispatchInfo};
+use sp_runtime::traits::Convert;
 
 #[runtime_version]
 const VERSION: RuntimeVersion = RuntimeVersion {
@@ -180,6 +181,17 @@ impl pallet_multisig::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 }
 
+// In the runtime, we can actually implement logic to convert balance to weight, because
+// WE KNOW that balance is u128, and Weight is two `u64`.
+pub struct SimpleBalanceToWeight;
+impl Convert<Balance, Weight> for SimpleBalanceToWeight {
+	fn convert(input: Balance) -> Weight {
+		use sp_runtime::SaturatedConversion;
+		let saturated_u64: u64 = input.saturated_into();
+		return Weight::from_parts(saturated_u64, saturated_u64)
+	}
+}
+
 /// Configure the pallet-free-tx in pallets/free-tx.
 impl pallet_free_tx::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -187,6 +199,7 @@ impl pallet_free_tx::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type HoldAmount = ConstU128<69420>;
+	type BalanceToWeightConverter = SimpleBalanceToWeight;
 }
 
 parameter_types! {

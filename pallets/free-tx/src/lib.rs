@@ -23,7 +23,7 @@ pub mod pallet {
 		traits::{fungible, fungible::MutateHold, tokens::Precision},
 	};
 	use frame_system::{pallet_prelude::*, RawOrigin};
-	use sp_runtime::traits::Dispatchable;
+	use sp_runtime::traits::{Convert, Dispatchable};
 	use sp_std::prelude::*;
 
 	pub type BalanceOf<T> = <<T as Config>::NativeBalance as fungible::Inspect<
@@ -65,6 +65,14 @@ pub mod pallet {
 		/// Overarching hold reason. Our `HoldReason` below will become a part of this "Outer Enum"
 		/// thanks to the `#[runtime]` macro.
 		type RuntimeHoldReason: From<HoldReason>;
+
+		/// This is an example of converting one generic type into a different type
+		/// by bringing the logic OUTSIDE of your pallet, and into the runtime
+		/// where all types are concrete, and the runtime developer can directly implement
+		/// the appropriate logic.
+		///
+		/// In this case, we convert the `Balance` type into the `Weight` type.
+		type BalanceToWeightConverter: Convert<BalanceOf<Self>, Weight>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.
@@ -180,6 +188,14 @@ pub mod pallet {
 				amount_held,
 				Precision::BestEffort,
 			)?;
+			Ok(())
+		}
+
+		/// This function will release the held balance of some user.
+		pub fn use_balance_to_weight(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
+			let _who = ensure_signed(origin)?;
+			let _weight: Weight = T::BalanceToWeightConverter::convert(amount);
+			// Do stuff with weight...
 			Ok(())
 		}
 	}
