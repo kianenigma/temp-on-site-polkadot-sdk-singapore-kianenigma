@@ -73,6 +73,11 @@ pub mod pallet {
 		///
 		/// In this case, we convert the `Balance` type into the `Weight` type.
 		type BalanceToWeightConverter: Convert<BalanceOf<Self>, Weight>;
+
+		/// We use a configurable constant `BlockNumber` to tell us when we should trigger the
+		/// free-tx era change.
+		#[pallet::constant]
+		type EraLength: Get<BlockNumberFor<Self>>;
 	}
 
 	/// A reason for the pallet placing a hold on funds.
@@ -204,6 +209,27 @@ pub mod pallet {
 		/// Get the weight of a call.
 		pub fn call_weight(call: <T as Config>::RuntimeCall) -> Weight {
 			call.get_dispatch_info().weight
+		}
+
+		/// This is a function suggested by a student that wanted to know how to make such a function work.
+		/// It is not expected that you need this function, or a function like it, in your project.
+		/// It really depends on how you are designing your logic.
+		/// So just use this as an example of how to construct and use a `Perbill` type.
+		pub fn proportional_credit(credit: Weight) -> Weight {
+			use sp_runtime::Perbill;
+
+			let block_number: BlockNumberFor<T> = <frame_system::Pallet<T>>::block_number();
+			let era_len = T::EraLength::get();
+			let blocks_into_era: BlockNumberFor<T> = block_number % era_len;
+
+			// This will compute a "percentage" from the fraction `blocks_into_era` / `era_len`
+			let percentage_of_era: Perbill = Perbill::from_rational(blocks_into_era, era_len);
+
+			// This multiplication is safe because `percentage_of_era` is always less than or equal
+			// to one.
+			let relative_credit = percentage_of_era * credit;
+
+			relative_credit
 		}
 	}
 }

@@ -93,6 +93,9 @@ impl pallet_free_tx::Config for Test {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	/// Use our simple converter...
 	type BalanceToWeightConverter = SimpleBalanceToWeight;
+	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
+	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE
+	type EraLength = ConstU64<100>;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

@@ -1,6 +1,7 @@
 use crate::{mock::*, *};
 use frame_support::{
 	assert_noop, assert_ok,
+	pallet_prelude::Pays,
 	traits::{
 		fungible::{Inspect, InspectHold, Mutate},
 		Get,
@@ -89,5 +90,29 @@ fn end_to_end_hold_works() {
 			FreeTx::release_my_funds(RuntimeOrigin::signed(alice)),
 			Error::<Test>::NothingHeld
 		);
+	});
+}
+
+// This is a really barebones example of how you can test your function is returning `Pays::No`.
+// This is not perfect for doing a full end-to-end test where tx fees aren't being paid, but
+// should be good enough for unit tests.
+//
+// For a REAL end to end test, we actually need to write a test in the Runtime.
+#[test]
+fn pays_test() {
+	new_test_ext().execute_with(|| {
+		let res = FreeTx::free_tx(RuntimeOrigin::signed(1), true);
+
+		let does_pay = match res {
+			Ok(info) => match info.pays_fee {
+				Pays::No => false,
+				Pays::Yes => true,
+			},
+			_ => true,
+		};
+
+		println!("{:?}", res);
+
+		assert!(!does_pay);
 	});
 }

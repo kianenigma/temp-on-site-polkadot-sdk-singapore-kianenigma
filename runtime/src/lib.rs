@@ -200,6 +200,9 @@ impl pallet_free_tx::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type HoldAmount = ConstU128<69420>;
 	type BalanceToWeightConverter = SimpleBalanceToWeight;
+	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
+	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE
+	type EraLength = ConstU32<100>;
 }
 
 parameter_types! {
