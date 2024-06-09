@@ -211,9 +211,9 @@ pub mod pallet {
 			call.get_dispatch_info().weight
 		}
 
-		/// This is a function suggested by a student that wanted to know how to make such a function work.
-		/// It is not expected that you need this function, or a function like it, in your project.
-		/// It really depends on how you are designing your logic.
+		/// This is a function suggested by a student that wanted to know how to make such a
+		/// function work. It is not expected that you need this function, or a function like it, in
+		/// your project. It really depends on how you are designing your logic.
 		/// So just use this as an example of how to construct and use a `Perbill` type.
 		pub fn proportional_credit(credit: Weight) -> Weight {
 			use sp_runtime::Perbill;

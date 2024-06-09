@@ -130,5 +130,29 @@ pub mod pallet {
 				},
 			}
 		}
+
+		pub fn propose_spend(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			Self::do_propose_spend(who, amount)
+		}
+	}
+
+	// NOTE: This is regular rust, and how you would implement functions onto an object.
+	// These functions are NOT extrinsics, are NOT callable by outside users, and are really
+	// just internal functions.
+	//
+	// Compare this to the block above which has `#[pallet::call]` which makes them extrinsics!
+	impl<T: Config> Pallet<T> {
+		fn do_propose_spend(_who: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+			// Write the logic for your extrinsic here, since this is "outside" of the macros.
+			// Following this kind of best practice can even allow you to move most of your
+			// pallet logic into different files, with better, more clear structure, rather
+			// than having a single huge complicated file.
+			if amount > 100_000u32.into() {
+				return Err("you are spending too much  money!".into())
+			}
+
+			Ok(())
+		}
 	}
 }
