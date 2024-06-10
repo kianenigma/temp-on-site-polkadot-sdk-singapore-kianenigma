@@ -6,11 +6,27 @@ use frame_support::{
 };
 use sp_core::H256;
 use sp_runtime::{
+	generic,
 	traits::{BlakeTwo256, Convert, IdentityLookup},
 	BuildStorage,
 };
 
-type Block = frame_system::mocking::MockBlock<Test>;
+type Signature = ();
+type SignedExtra = (
+	// TODO: Add whatever signed extensions you want, such as:
+	// pallet_transaction_payment::ChargeTransactionPayment<Test>,
+);
+#[allow(dead_code)]
+type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+type BlockNumber = u64;
+type Header = generic::Header<BlockNumber, BlakeTwo256>;
+type UncheckedExtrinsic = generic::UncheckedExtrinsic<
+	AccountId,
+	RuntimeCall,
+	Signature,
+	SignedExtra,
+>;
+type Block = generic::Block<Header, UncheckedExtrinsic>;
 type Balance = u128;
 type AccountId = u64;
 
@@ -102,4 +118,23 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	// learn how to improve your test setup:
 	// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html
 	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+}
+
+#[allow(dead_code)]
+pub fn mock_extrinsic(
+	account_id: AccountId,
+	call: RuntimeCall,
+) -> UncheckedExtrinsic {
+	let extra: SignedExtra = (
+		// TODO: Add whatever signed extensions you want, such as:
+		// pallet_transaction_payment::ChargeTransactionPayment::<Test>::from(0),
+	);
+	let raw_payload = SignedPayload::new(call, extra).unwrap();
+	let (call, extra, _) = raw_payload.deconstruct();
+	UncheckedExtrinsic::new_signed(
+		call,
+		account_id.into(),
+		(),
+		extra,
+	)
 }

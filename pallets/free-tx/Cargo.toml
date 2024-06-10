@@ -30,6 +30,8 @@ sp-std = { version = "14.0.0", default-features = false }
 
 [dev-dependencies]
 pallet-balances = { version = "35.0.0" }
+pallet-transaction-payment = { version = "34.0.0" }
+sp-keyring = { version = "37.0.0" }
 
 [features]
 default = ["std"]

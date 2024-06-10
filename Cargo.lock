@@ -2028,10 +2028,12 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
+ "pallet-transaction-payment",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-io",
+ "sp-keyring",
  "sp-runtime",
  "sp-std",
 ]
@@ -3250,6 +3252,17 @@ dependencies = [
  "sp-trie",
  "tracing",
  "tracing-core",
+]
+
+[[package]]
+name = "sp-keyring"
+version = "37.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65a24506e9e7c4d66e3b4d9c45e35009b59d3cc545481224bf1e85146d2426ec"
+dependencies = [
+ "sp-core",
+ "sp-runtime",
+ "strum 0.26.2",
 ]
 
 [[package]]
