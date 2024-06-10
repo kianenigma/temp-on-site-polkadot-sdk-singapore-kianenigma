@@ -100,6 +100,19 @@ pub mod pallet {
 		StorageOverflow,
 	}
 
+	// Here is an example of explicitly telling SCALE codec to encode a number as compact in
+	// storage.
+	#[derive(TypeInfo, Encode, Decode, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	pub struct StoreACompactNumber<T: Config> {
+		who: T::AccountId,
+		#[codec(compact)]
+		amount: BalanceOf<T>,
+	}
+
+	#[pallet::storage]
+	pub type MyCompactNumber<T: Config> = StorageValue<Value = StoreACompactNumber<T>>;
+
 	/// Dispatchable functions allows users to interact with the pallet and invoke state changes.
 	/// These functions materialize as "extrinsics", which are often compared to transactions.
 	/// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
