@@ -2,6 +2,18 @@ use crate::{mock::*, *};
 use frame_support::assert_ok;
 
 #[test]
+fn check_based_on_max_validators() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(<Test as crate::Config>::MaxValidators::get(), 10);
+
+		// change this `Get` impl on the fly -- this only works if MaxValidators is `pub static`.
+		crate::mock::MaxValidators::set(42);
+
+		assert_eq!(<Test as crate::Config>::MaxValidators::get(), 42);
+	})
+}
+
+#[test]
 fn it_works_for_default_value() {
 	new_test_ext().execute_with(|| {
 		// Go past genesis block so events get deposited
