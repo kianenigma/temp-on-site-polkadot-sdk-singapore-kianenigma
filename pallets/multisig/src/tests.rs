@@ -20,6 +20,20 @@ fn it_works_for_default_value() {
 }
 
 #[test]
+fn try_mutate_works_as_expected() {
+	StateBuilder::default().build_and_execute(|| {
+		assert_eq!(SomethingMap::<Test>::get(&10), None);
+
+		SomethingMap::<Test>::try_mutate::<_, _, (), _>(&10, |val| {
+			*val = Some(42);
+			Ok(())
+		});
+
+		assert_eq!(SomethingMap::<Test>::get(&10), Some(42));
+	});
+}
+
+#[test]
 fn correct_error_for_none_value() {
 	new_test_ext().execute_with(|| {
 		// Ensure the expected error is thrown when no value is present.

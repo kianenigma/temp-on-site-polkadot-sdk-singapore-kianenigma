@@ -70,7 +70,8 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const MaxValidators: u32 = 10;
+	// static makes MaxValidators configurable on the fly.
+	pub static MaxValidators: u32 = 10;
 	pub static Author: AccountId = 7;
 }
 

@@ -4,6 +4,7 @@ use frame_support::{
 	traits::{ConstU128, ConstU16, ConstU32, ConstU64},
 };
 use sp_core::H256;
+use sp_io::TestExternalities;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
@@ -78,4 +79,41 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	// learn how to improve your test setup:
 	// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html
 	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+}
+
+pub struct StateBuilder {
+	pub num_accounts: u32,
+	pub initial_balance: u32,
+}
+
+impl Default for StateBuilder {
+	fn default() -> Self {
+		Self { num_accounts: 5, initial_balance: 10 }
+	}
+}
+
+#[allow(unused)]
+impl StateBuilder {
+	pub fn num_accounts(mut self, new_num_accounts: u32) -> Self {
+		self.num_accounts = new_num_accounts;
+		self
+	}
+
+	pub fn build_and_execute(self, test: impl FnOnce() -> ()) {
+		// build initial state based in self
+		let mut ext: TestExternalities =
+			frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into();
+		ext.execute_with(|| {
+			for _acc in 0..self.num_accounts {
+				// create_account();
+			}
+		});
+
+		// pre-all tests
+		ext.execute_with(|| {
+			test();
+		});
+
+		// post all tests
+	}
 }
