@@ -12,20 +12,13 @@ use sp_runtime::{
 };
 
 type Signature = ();
-type SignedExtra = (
-	// TODO: Add whatever signed extensions you want, such as:
-	// pallet_transaction_payment::ChargeTransactionPayment<Test>,
-);
+type SignedExtra = ();
 #[allow(dead_code)]
 type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 type BlockNumber = u64;
 type Header = generic::Header<BlockNumber, BlakeTwo256>;
-type UncheckedExtrinsic = generic::UncheckedExtrinsic<
-	AccountId,
-	RuntimeCall,
-	Signature,
-	SignedExtra,
->;
+type UncheckedExtrinsic =
+	generic::UncheckedExtrinsic<AccountId, RuntimeCall, Signature, SignedExtra>;
 type Block = generic::Block<Header, UncheckedExtrinsic>;
 type Balance = u128;
 type AccountId = u64;
@@ -121,20 +114,12 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 #[allow(dead_code)]
-pub fn mock_extrinsic(
-	account_id: AccountId,
-	call: RuntimeCall,
-) -> UncheckedExtrinsic {
+pub fn mock_extrinsic(account_id: AccountId, call: RuntimeCall) -> UncheckedExtrinsic {
 	let extra: SignedExtra = (
 		// TODO: Add whatever signed extensions you want, such as:
 		// pallet_transaction_payment::ChargeTransactionPayment::<Test>::from(0),
 	);
 	let raw_payload = SignedPayload::new(call, extra).unwrap();
 	let (call, extra, _) = raw_payload.deconstruct();
-	UncheckedExtrinsic::new_signed(
-		call,
-		account_id.into(),
-		(),
-		extra,
-	)
+	UncheckedExtrinsic::new_signed(call, account_id.into(), (), extra)
 }
