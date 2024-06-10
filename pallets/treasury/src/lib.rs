@@ -57,6 +57,13 @@ pub mod pallet {
 			+ fungibles::Mutate<Self::AccountId>
 			+ fungibles::Create<Self::AccountId>;
 
+		// two ways to convert asset and balance type to one another, look into `ConvertBack` for
+		// reverse conversion, or define a second type.
+		// type AssetIdToBalance: Convert<AssetBalanceOf<Self>, BalanceOf<Self>>;
+		// fn asset_id_to_balance(id: AssetBalanceOf<Self>) -> BalanceOf<Self>;
+		// or, do something like this:
+		// type Fungibles: fungibles::Inspect<Self::AccountId, Balance = BalanceOf<Self>>
+
 		// A custom, configurable origin that you can use. It can be wired to be `EnsureSigned`,
 		// `EnsureRoot`, or any custom implementation at the runtime level.
 		// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_origin/index.html#asserting-on-a-custom-external-origin
