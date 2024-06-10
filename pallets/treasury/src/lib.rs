@@ -135,6 +135,26 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			Self::do_propose_spend(who, amount)
 		}
+
+		// Let's imagine you wanted to build a transfer extrinsic inside your pallet...
+		// This doesn't really make sense to do, since this functionality exists in the `Balances`
+		// pallet, but it illustrates how to use the `BalanceOf<T>` type and the `T::NativeBalance`
+		// api.
+		pub fn my_transfer_function(
+			origin: OriginFor<T>,
+			to: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			// Probably you would import these at the top of you file, not here, but just trying to
+			// illustrate that you need to import this trait to access the function inside of it.
+			use frame_support::traits::fungible::Mutate;
+			// Read the docs on this to understand what it does...
+			use frame_support::traits::tokens::Preservation;
+
+			let sender = ensure_signed(origin)?;
+			T::NativeBalance::transfer(&sender, &to, amount, Preservation::Expendable)?;
+			Ok(())
+		}
 	}
 
 	// NOTE: This is regular rust, and how you would implement functions onto an object.
