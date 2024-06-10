@@ -1,8 +1,9 @@
 use crate::{self as pallet_dpos, ReportNewValidatorSet};
 use frame_support::{
 	derive_impl, parameter_types,
-	traits::{ConstU128, ConstU16, ConstU32, ConstU64, FindAuthor},
+	traits::{ConstU128, ConstU16, ConstU32, ConstU64, FindAuthor, Hooks},
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -105,4 +106,20 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	// learn how to improve your test setup:
 	// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html
 	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+}
+
+pub fn next_block() {
+    System::set_block_number(System::block_number() + 1);
+    System::on_initialize(System::block_number());
+    Dpos::on_initialize(System::block_number());
+}
+
+pub fn run_to_block(n: BlockNumberFor<Test>) {
+    while System::block_number() < n {
+        if System::block_number() > 1 {
+            Dpos::on_finalize(System::block_number());
+            System::on_finalize(System::block_number());
+        }
+        next_block();
+    }
 }
