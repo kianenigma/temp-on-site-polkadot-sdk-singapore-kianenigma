@@ -207,8 +207,8 @@ pub mod pallet {
 		// this is a useful dummy tx to create different calls with different weight amounts
 		// the nicer way to do this is to put this in a new standalone pallet only used in your
 		// test runtime
-		#[pallet::weight({*weight})]
-		pub fn dummy_call_with_weight(origin: OriginFor<T>, weight: Weight) -> DispatchResult {
+		#[pallet::weight({*_weight})]
+		pub fn dummy_call_with_weight(_origin: OriginFor<T>, _weight: Weight) -> DispatchResult {
 			Ok(())
 		}
 	}
