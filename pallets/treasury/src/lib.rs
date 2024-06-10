@@ -61,6 +61,9 @@ pub mod pallet {
 		// `EnsureRoot`, or any custom implementation at the runtime level.
 		// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_origin/index.html#asserting-on-a-custom-external-origin
 		type CustomOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
+		// Here is an associated type to give you access to your simple asset price lookup function
+		type AssetPriceLookup: crate::AssetPriceLookup<Self>;
 	}
 
 	/// The pallet's storage items.
@@ -175,4 +178,16 @@ pub mod pallet {
 			Ok(())
 		}
 	}
+}
+
+/// This is some simple function that can be used to convert some amount of Asset A, and turn it
+/// into some amount of Asset B. You do not really need to implement this function. You would to
+/// build your own complex pallet to figure this out (oracle, dex) BUT you can make the assumption
+/// that somewhere this logic exists, and then you can use it.
+pub trait AssetPriceLookup<T: Config> {
+	fn price_lookup(
+		asset_a_id: AssetIdOf<T>,
+		asset_a_amount: AssetBalanceOf<T>,
+		asset_b_id: AssetIdOf<T>,
+	) -> AssetBalanceOf<T>;
 }

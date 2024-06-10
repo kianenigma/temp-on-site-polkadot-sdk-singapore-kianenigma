@@ -251,12 +251,25 @@ impl pallet_dpos::Config for Runtime {
 	type EpochDuration = ConstU32<100>;
 }
 
+// In a real blockchain, this wouldn't be some simple function, but actually a whole pallet that
+// would implement this logic. But for your situation, and unit tests, you just need a simple
+// implementation.
+pub struct SimplePriceLookup;
+impl pallet_treasury::AssetPriceLookup<Runtime> for SimplePriceLookup {
+	fn price_lookup(_id_a: u32, amt_a: u128, _id_b: u32) -> u128 {
+		// Here we make the simple assumption asset a is always the same amount as asset b
+		// you can write more clever function here for more accurate testing
+		amt_a
+	}
+}
+
 /// Configure the pallet-treasury in pallets/treasury.
 impl pallet_treasury::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type Fungibles = Assets;
 	type CustomOrigin = EnsureRoot<AccountId>;
+	type AssetPriceLookup = SimplePriceLookup;
 }
 
 /// The signed extensions that are added to the runtime.
