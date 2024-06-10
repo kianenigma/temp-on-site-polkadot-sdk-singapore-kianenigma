@@ -71,15 +71,16 @@ impl pallet_balances::Config for Test {
 
 parameter_types! {
 	pub const MaxValidators: u32 = 10;
+	pub static Author: AccountId = 7;
 }
 
-pub struct AlwaysSeven;
-impl FindAuthor<AccountId> for AlwaysSeven {
+pub struct DynamicAuthor;
+impl FindAuthor<AccountId> for DynamicAuthor {
 	fn find_author<'a, I>(_: I) -> Option<AccountId>
 	where
 		I: 'a + IntoIterator<Item = ([u8; 4], &'a [u8])>,
 	{
-		Some(7)
+		Some(Author::get())
 	}
 }
 
@@ -92,7 +93,7 @@ impl pallet_dpos::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type MaxValidators = MaxValidators;
-	type FindAuthor = AlwaysSeven;
+	type FindAuthor = DynamicAuthor;
 	type ReportNewValidatorSet = DoNothing;
 	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
 	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE

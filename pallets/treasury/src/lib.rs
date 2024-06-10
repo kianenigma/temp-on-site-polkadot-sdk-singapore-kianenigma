@@ -149,7 +149,7 @@ pub mod pallet {
 			// pallet logic into different files, with better, more clear structure, rather
 			// than having a single huge complicated file.
 			if amount > 100_000u32.into() {
-				return Err("you are spending too much  money!".into())
+				return Err("you are spending too much  money!".into());
 			}
 
 			Ok(())

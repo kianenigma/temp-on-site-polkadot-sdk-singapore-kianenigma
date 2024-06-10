@@ -188,7 +188,7 @@ impl Convert<Balance, Weight> for SimpleBalanceToWeight {
 	fn convert(input: Balance) -> Weight {
 		use sp_runtime::SaturatedConversion;
 		let saturated_u64: u64 = input.saturated_into();
-		return Weight::from_parts(saturated_u64, saturated_u64)
+		return Weight::from_parts(saturated_u64, saturated_u64);
 	}
 }
 

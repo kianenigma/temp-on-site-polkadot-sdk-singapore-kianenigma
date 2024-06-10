@@ -14,3 +14,22 @@ fn it_works_for_default_value() {
 		System::assert_last_event(Event::SomethingStored { something: 43, who: 1 }.into());
 	});
 }
+
+#[test]
+fn test_custom_author_in_test() {
+	use frame_support::traits::FindAuthor;
+	// initially, our author is 7, as defined in the mock file.
+	// Now our pallet will read 8 as the block author
+	assert_eq!(
+		<Test as crate::Config>::FindAuthor::find_author::<Vec<_>>(Default::default()),
+		Some(7)
+	);
+
+	mock::Author::set(8);
+
+	// Now our pallet will read 8 as the block author
+	assert_eq!(
+		<Test as crate::Config>::FindAuthor::find_author::<Vec<_>>(Default::default()),
+		Some(8)
+	);
+}

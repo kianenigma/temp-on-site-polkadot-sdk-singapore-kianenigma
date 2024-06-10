@@ -119,7 +119,7 @@ pub mod pallet {
 
 			// We return a default weight because we do not expect you to do weights for your
 			// project... Except for extra credit...
-			return Weight::default()
+			return Weight::default();
 		}
 	}
 

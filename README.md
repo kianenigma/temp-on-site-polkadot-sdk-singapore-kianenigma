@@ -61,6 +61,7 @@ cargo install staging-chain-spec-builder
 Feel free to populate your chain-spec file then with more accounts, like:
 
 ```json
+// under `balances.balance`
 ["5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", 100000],
 ["5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty", 100000],
 ["5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y", 100000],
@@ -75,6 +76,13 @@ Feel free to populate your chain-spec file then with more accounts, like:
 ["5CRmqmsiNFExV6VbdmPJViVxrWmkaXXvBrSX8oqBT8R9vmWk", 100000],
 ["5Fxune7f71ZbpP2FoY3mhYcmM596Erhv1gRue4nsPwkxMR4n", 100000],
 ["5CUjxa4wVKMj3FqKdqAUf7zcEMr4MYAjXeWmUf44B41neLmJ", 100000]
+```
+
+If you wish to set "Alice" as the sudo:
+
+```json
+// under `sudo.key`
+"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 ```
 
 And more details like:
