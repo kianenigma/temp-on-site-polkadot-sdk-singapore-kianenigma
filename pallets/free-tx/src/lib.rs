@@ -129,6 +129,7 @@ pub mod pallet {
 		}
 
 		fn integrity_test() {
+			use sp_runtime::traits::Zero;
 			assert!(!T::EraLength::get().is_zero(), "era length cannot be zero");
 		}
 	}
