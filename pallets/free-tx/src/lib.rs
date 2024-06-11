@@ -127,6 +127,10 @@ pub mod pallet {
 		fn try_state(_: BlockNumberFor<T>) -> Result<(), sp_runtime::TryRuntimeError> {
 			Self::do_try_state()
 		}
+
+		fn integrity_test() {
+			assert!(!T::EraLength::get().is_zero(), "era length cannot be zero");
+		}
 	}
 
 	#[cfg(any(test, feature = "try-runtime"))]
