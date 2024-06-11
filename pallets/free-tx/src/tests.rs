@@ -24,6 +24,28 @@ fn it_works() {
 }
 
 #[test]
+fn call_and_charge_tx_fee() {
+	StateBuilder::default().with_balance(10, 10).build_and_execute(|| {
+		let who = 10;
+		let call = RuntimeCall::FreeTx(crate::pallet::Call::with_fee {});
+
+		// check account 10 balance
+		assert_eq!(<Test as Config>::NativeBalance::balance(&10), 10);
+		assert_ok!(mock::dispatch_with_signed_exts(who, call));
+		assert_eq!(<Test as Config>::NativeBalance::balance(&10), 9);
+	});
+
+	StateBuilder::default().with_balance(10, 10).build_and_execute(|| {
+		let who = 10;
+		let call = RuntimeCall::FreeTx(crate::pallet::Call::without_fee {});
+
+		assert_eq!(<Test as Config>::NativeBalance::balance(&10), 10);
+		assert_ok!(mock::dispatch_with_signed_exts(who, call));
+		assert_eq!(<Test as Config>::NativeBalance::balance(&10), 10);
+	});
+}
+
+#[test]
 fn initial_setup_works() {
 	StateBuilder::default()
 		.with_balance(3, 10)

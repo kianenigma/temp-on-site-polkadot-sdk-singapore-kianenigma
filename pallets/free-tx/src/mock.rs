@@ -1,15 +1,20 @@
 use crate as pallet_free_tx;
+use codec::{Decode, Encode};
 use frame_support::{
 	derive_impl,
+	dispatch::{DispatchResultWithPostInfo, GetDispatchInfo},
 	pallet_prelude::Weight,
 	traits::{ConstU128, ConstU16, ConstU32, ConstU64},
+	weights::FixedFee,
 };
+
+use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_io::TestExternalities;
 use sp_runtime::{
 	generic,
-	traits::{BlakeTwo256, Convert, IdentityLookup},
-	BuildStorage,
+	traits::{BlakeTwo256, Convert, Dispatchable, IdentityLookup, SignedExtension},
+	BuildStorage, DispatchError,
 };
 
 type Signature = ();
@@ -29,6 +34,7 @@ frame_support::construct_runtime! {
 	pub struct Test {
 		System: frame_system,
 		Balances: pallet_balances,
+		TransactionPayment: pallet_transaction_payment,
 		FreeTx: pallet_free_tx,
 	}
 }
@@ -79,6 +85,13 @@ impl pallet_balances::Config for Test {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<10>;
+}
+
+#[derive_impl(pallet_transaction_payment::config_preludes::TestDefaultConfig)]
+impl pallet_transaction_payment::Config for Test {
+	type OnChargeTransaction = pallet_transaction_payment::FungibleAdapter<Balances, ()>;
+	type LengthToFee = FixedFee<1, Balance>;
+	type WeightToFee = FixedFee<0, Balance>;
 }
 
 // In the runtime, we can actually implement logic to convert balance to weight, because
@@ -134,16 +147,72 @@ impl StateBuilder {
 		let free_tx =
 			pallet_free_tx::GenesisConfig::<Test> { initial_credits: self.initial_credits };
 
-		let mut ext: TestExternalities = RuntimeGenesisConfig { system, balances, free_tx }
-			.build_storage()
-			.unwrap()
-			.into();
+		let mut ext: TestExternalities =
+			RuntimeGenesisConfig { system, balances, free_tx, ..Default::default() }
+				.build_storage()
+				.unwrap()
+				.into();
 
 		ext.execute_with(|| {
 			test();
 			FreeTx::do_try_state();
 		});
 	}
+}
+
+// TODO: you want the extension to be generic over T: Config as well
+#[derive(TypeInfo, Encode, Decode, Debug, PartialEq, Eq, Clone)]
+struct CustomSignedExtension;
+impl SignedExtension for CustomSignedExtension {
+	const IDENTIFIER: &'static str = "CUSTOM";
+	type AccountId = AccountId;
+	type AdditionalSigned = ();
+	type Call = RuntimeCall;
+	type Pre = ();
+	fn additional_signed(
+		&self,
+	) -> Result<Self::AdditionalSigned, frame_support::pallet_prelude::TransactionValidityError> {
+		Ok(())
+	}
+
+	fn pre_dispatch(
+		self,
+		who: &Self::AccountId,
+		call: &Self::Call,
+		info: &sp_runtime::traits::DispatchInfoOf<Self::Call>,
+		len: usize,
+	) -> Result<Self::Pre, frame_support::pallet_prelude::TransactionValidityError> {
+		Self::validate(&self, who, call, info, len).map(|_| ())
+	}
+}
+
+pub(crate) fn dispatch_with_signed_exts(
+	who: AccountId,
+	call: RuntimeCall,
+) -> DispatchResultWithPostInfo {
+	let info = call.get_dispatch_info();
+	let len = call.encode().len();
+
+	let pre = pallet_transaction_payment::ChargeTransactionPayment::<Test>::from(0)
+		.pre_dispatch(&who, &call, &info, len)
+		.unwrap();
+
+	let dispatch_result: Result<frame_support::dispatch::PostDispatchInfo, _> =
+		call.dispatch(RuntimeOrigin::signed(who));
+
+	let _post_dispatch_result =
+		pallet_transaction_payment::ChargeTransactionPayment::<Test>::post_dispatch(
+			Some(pre),
+			&info,
+			&dispatch_result.clone().unwrap(),
+			len,
+			&dispatch_result
+				.clone()
+				.map(|_| ())
+				.map_err(|_| DispatchError::Other("DONT_CARE")),
+		);
+
+	dispatch_result
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

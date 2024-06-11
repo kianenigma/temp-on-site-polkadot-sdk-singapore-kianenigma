@@ -254,6 +254,14 @@ pub mod pallet {
 		pub fn dummy_call_with_weight(_origin: OriginFor<T>, _weight: Weight) -> DispatchResult {
 			Ok(())
 		}
+
+		pub fn with_fee(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			Ok(Pays::Yes.into())
+		}
+
+		pub fn without_fee(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			Ok(Pays::No.into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
