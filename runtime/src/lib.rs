@@ -181,14 +181,38 @@ impl pallet_multisig::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 }
 
-// In the runtime, we can actually implement logic to convert balance to weight, because
-// WE KNOW that balance is u128, and Weight is two `u64`.
-pub struct SimpleBalanceToWeight;
-impl Convert<Balance, Weight> for SimpleBalanceToWeight {
+// This is a reasonable formula to calculate how much weight a person should get based on their
+// locked amount.
+pub struct OneHundredDotPerTransfer;
+impl Convert<Balance, Weight> for OneHundredDotPerTransfer {
 	fn convert(input: Balance) -> Weight {
-		use sp_runtime::SaturatedConversion;
-		let saturated_u64: u64 = input.saturated_into();
-		return Weight::from_parts(saturated_u64, saturated_u64);
+		use frame::deps::frame_support::dispatch::GetDispatchInfo;
+		use sp_runtime::{traits::UniqueSaturatedInto, AccountId32, MultiAddress};
+
+		// These values dont matter, but we need them to construct a valid call.
+		let random_account: MultiAddress<_, _> = AccountId32::from([1u8; 32]).into();
+		let random_amount = 1;
+
+		// In polkadot, this would be 100 DOT
+		let balance_needed_to_get_one_free_transfer: Balance = 1_000_000_000_000u128;
+
+		// We have to convert to u64 to multiply with weight. We are okay that this value saturates,
+		// how many free tx can one person really get?
+		let number_of_free_transfers: u64 =
+			(input / balance_needed_to_get_one_free_transfer).unique_saturated_into();
+
+		let transfer_call: RuntimeCall = pallet_balances::Call::<Runtime>::transfer_keep_alive {
+			dest: random_account,
+			value: random_amount,
+		}
+		.into();
+
+		let weight_of_transfer_call = transfer_call.get_dispatch_info().weight;
+
+		let weight_credit_to_give =
+			weight_of_transfer_call.saturating_mul(number_of_free_transfers);
+
+		return weight_credit_to_give
 	}
 }
 
@@ -199,7 +223,7 @@ impl pallet_free_tx::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type HoldAmount = ConstU128<69420>;
-	type BalanceToWeightConverter = SimpleBalanceToWeight;
+	type BalanceToWeightConverter = OneHundredDotPerTransfer;
 	// Assuming blocks happen every 6 seconds, this will be 600 seconds, approximately 10 minutes.
 	// But this is all just test config, but gives you an idea how this is all CONFIGURABLE
 	type EraLength = ConstU32<100>;
