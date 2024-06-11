@@ -281,7 +281,7 @@ type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	CustomExtension,
 );
 
 // Many of the types in this runtime are being pulled in from `derive_impl`. We use the almighty

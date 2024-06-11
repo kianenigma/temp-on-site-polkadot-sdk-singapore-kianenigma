@@ -1,4 +1,4 @@
-use crate as pallet_multisig;
+use crate::{self as pallet_multisig, MultisigType};
 use frame_support::{
 	derive_impl,
 	traits::{ConstU128, ConstU16, ConstU32, ConstU64},
@@ -73,6 +73,16 @@ impl pallet_multisig::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type RuntimeCall = RuntimeCall;
+
+	fn multi_sig_filter(call: <Self as crate::Config>::RuntimeCall, m_type: MultisigType) -> bool {
+		match m_type {
+			MultisigType::All => true,
+			MultisigType::TransferOnly => match call {
+				RuntimeCall::Balances(pallet_balances::Call::<Test> { .. }) => true,
+				_ => false,
+			},
+		}
+	}
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

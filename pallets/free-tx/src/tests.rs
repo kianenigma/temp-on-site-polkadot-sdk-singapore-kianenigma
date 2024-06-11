@@ -24,6 +24,33 @@ fn it_works() {
 }
 
 #[test]
+fn initial_setup_works() {
+	StateBuilder::default()
+		.with_balance(3, 10)
+		.with_balance(4, 10)
+		.build_and_execute(|| {
+			assert_eq!(<Test as Config>::NativeBalance::balance(&1), 5);
+			assert_eq!(
+				<Test as Config>::NativeBalance::balance_on_hold(
+					&HoldReason::FreeTxHold.into(),
+					&1
+				),
+				5
+			);
+			assert_eq!(AmountHeld::<Test>::get(&1), Some(5));
+
+			assert_eq!(<Test as Config>::NativeBalance::balance(&2), 10);
+			assert_eq!(<Test as Config>::NativeBalance::balance(&3), 10);
+			assert_eq!(<Test as Config>::NativeBalance::balance(&4), 10);
+
+			assert_eq!(<Test as Config>::NativeBalance::balance(&5), 0);
+
+			assert!(Credits::<Test>::get(1).is_some());
+			assert!(Credits::<Test>::get(2).is_none());
+		});
+}
+
+#[test]
 fn end_to_end_hold_works() {
 	new_test_ext().execute_with(|| {
 		let alice = 1;

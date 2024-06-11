@@ -101,6 +101,44 @@ pub mod pallet {
 	#[pallet::storage]
 	pub type AmountHeld<T: Config> = StorageMap<Key = T::AccountId, Value = BalanceOf<T>>;
 
+	#[pallet::storage]
+	pub type Credits<T: Config> = StorageMap<Key = T::AccountId, Value = Weight>;
+
+	#[pallet::genesis_config]
+	#[derive(frame_support::DefaultNoBound)]
+	pub struct GenesisConfig<T: Config> {
+		pub initial_credits: Vec<(T::AccountId, Weight, BalanceOf<T>)>,
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			for (acc, cred, at_hold) in &self.initial_credits {
+				Credits::<T>::insert(acc, cred);
+				T::NativeBalance::hold(&HoldReason::FreeTxHold.into(), acc, *at_hold).unwrap();
+				AmountHeld::<T>::insert(acc, at_hold);
+			}
+		}
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		#[cfg(feature = "try-runtime")]
+		fn try_state(_: BlockNumberFor<T>) -> Result<(), sp_runtime::TryRuntimeError> {
+			Self::do_try_state()
+		}
+	}
+
+	#[cfg(any(test, feature = "try-runtime"))]
+	impl<T: Config> Pallet<T> {
+		pub(crate) fn do_try_state() {
+			use sp_std::collections::btree_set::BTreeSet;
+			let credits: BTreeSet<T::AccountId> = Credits::<T>::iter_keys().collect();
+			let holds: BTreeSet<T::AccountId> = AmountHeld::<T>::iter_keys().collect();
+			assert_eq!(credits, holds);
+		}
+	}
+
 	/// Pallets use events to inform users when important changes are made.
 	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
 	#[pallet::event]

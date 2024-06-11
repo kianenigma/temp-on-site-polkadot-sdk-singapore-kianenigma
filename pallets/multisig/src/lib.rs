@@ -33,6 +33,12 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	pub enum MultisigType {
+		All,
+		TransferOnly,
+		ExceptTransfer,
+	}
+
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -53,6 +59,8 @@ pub mod pallet {
 		type RuntimeCall: Parameter
 			+ Dispatchable<RuntimeOrigin = Self::RuntimeOrigin>
 			+ GetDispatchInfo;
+
+		fn multi_sig_filter(call: <Self as Config>::RuntimeCall, m_type: MultisigType) -> bool;
 	}
 
 	/// The pallet's storage items.
