@@ -24,10 +24,10 @@ fn try_mutate_works_as_expected() {
 	StateBuilder::default().build_and_execute(|| {
 		assert_eq!(SomethingMap::<Test>::get(&10), None);
 
-		SomethingMap::<Test>::try_mutate::<_, _, (), _>(&10, |val| {
+		assert_ok!(SomethingMap::<Test>::try_mutate::<_, _, (), _>(&10, |val| {
 			*val = Some(42);
 			Ok(())
-		});
+		}));
 
 		assert_eq!(SomethingMap::<Test>::get(&10), Some(42));
 	});

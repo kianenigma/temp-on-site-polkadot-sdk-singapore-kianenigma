@@ -174,11 +174,24 @@ impl pallet_assets::Config for Runtime {
 	type BenchmarkHelper = ();
 }
 
+use pallet_multisig::MultisigType;
+
 /// Configure the pallet-multisig in pallets/multisig.
 impl pallet_multisig::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type RuntimeCall = RuntimeCall;
+
+	fn multi_sig_filter(call: RuntimeCall, m_type: MultisigType) -> bool {
+		match m_type {
+			MultisigType::All => true,
+			MultisigType::TransferOnly => match call {
+				RuntimeCall::Balances(_) => true,
+				_ => false,
+			},
+			_ => false,
+		}
+	}
 }
 
 // This is a reasonable formula to calculate how much weight a person should get based on their
@@ -305,7 +318,7 @@ type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	CustomExtension,
+	pallet_free_tx::CustomSignedExtension<Runtime>,
 );
 
 // Many of the types in this runtime are being pulled in from `derive_impl`. We use the almighty

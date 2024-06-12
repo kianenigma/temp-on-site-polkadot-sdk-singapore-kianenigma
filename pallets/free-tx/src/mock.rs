@@ -1,5 +1,5 @@
 use crate as pallet_free_tx;
-use codec::{Decode, Encode};
+use codec::Encode;
 use frame_support::{
 	derive_impl,
 	dispatch::{DispatchResultWithPostInfo, GetDispatchInfo},
@@ -8,7 +8,6 @@ use frame_support::{
 	weights::FixedFee,
 };
 
-use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_io::TestExternalities;
 use sp_runtime::{
@@ -157,32 +156,6 @@ impl StateBuilder {
 			test();
 			FreeTx::do_try_state();
 		});
-	}
-}
-
-// TODO: you want the extension to be generic over T: Config as well
-#[derive(TypeInfo, Encode, Decode, Debug, PartialEq, Eq, Clone)]
-struct CustomSignedExtension;
-impl SignedExtension for CustomSignedExtension {
-	const IDENTIFIER: &'static str = "CUSTOM";
-	type AccountId = AccountId;
-	type AdditionalSigned = ();
-	type Call = RuntimeCall;
-	type Pre = ();
-	fn additional_signed(
-		&self,
-	) -> Result<Self::AdditionalSigned, frame_support::pallet_prelude::TransactionValidityError> {
-		Ok(())
-	}
-
-	fn pre_dispatch(
-		self,
-		who: &Self::AccountId,
-		call: &Self::Call,
-		info: &sp_runtime::traits::DispatchInfoOf<Self::Call>,
-		len: usize,
-	) -> Result<Self::Pre, frame_support::pallet_prelude::TransactionValidityError> {
-		Self::validate(&self, who, call, info, len).map(|_| ())
 	}
 }
 

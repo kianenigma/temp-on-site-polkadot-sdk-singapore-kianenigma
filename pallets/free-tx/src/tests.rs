@@ -165,3 +165,21 @@ fn pays_test() {
 		assert!(!does_pay);
 	});
 }
+
+#[test]
+fn basic_signed_extension_test() {
+	new_test_ext().execute_with(|| {
+		use frame_support::{
+			dispatch::GetDispatchInfo,
+			pallet_prelude::{TransactionValidity, ValidTransaction},
+		};
+		use sp_runtime::traits::SignedExtension;
+
+		let p: crate::CustomSignedExtension<Test> = crate::CustomSignedExtension::new();
+		let c: RuntimeCall = crate::Call::free_tx { success: true }.into();
+		let di = c.get_dispatch_info();
+		assert_eq!(di.pays_fee, Pays::Yes);
+		let r = p.validate(&42, &c, &di, 20);
+		assert_eq!(r, TransactionValidity::Ok(ValidTransaction::default()));
+	});
+}

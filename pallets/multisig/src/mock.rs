@@ -78,9 +78,10 @@ impl pallet_multisig::Config for Test {
 		match m_type {
 			MultisigType::All => true,
 			MultisigType::TransferOnly => match call {
-				RuntimeCall::Balances(pallet_balances::Call::<Test> { .. }) => true,
+				RuntimeCall::Balances(_) => true,
 				_ => false,
 			},
+			_ => false,
 		}
 	}
 }

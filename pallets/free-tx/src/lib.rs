@@ -292,3 +292,47 @@ pub mod pallet {
 		}
 	}
 }
+
+use core::marker::PhantomData;
+use frame_support::{traits::IsSubType, CloneNoBound, DebugNoBound, EqNoBound, PartialEqNoBound};
+
+impl<T: crate::Config> CustomSignedExtension<T>
+where
+	<T as frame_system::Config>::RuntimeCall: IsSubType<crate::Call<T>>,
+{
+	/// Create new `SignedExtension` to check runtime version.
+	pub fn new() -> Self {
+		Self(sp_std::marker::PhantomData)
+	}
+}
+
+use codec::{Decode, Encode};
+use frame_support::pallet_prelude::TypeInfo;
+use sp_runtime::traits::SignedExtension;
+
+// TODO: you want the extension to be generic over T: Config as well
+#[derive(TypeInfo, Encode, Decode, DebugNoBound, PartialEqNoBound, EqNoBound, CloneNoBound)]
+#[scale_info(skip_type_params(T))]
+pub struct CustomSignedExtension<T>(PhantomData<fn(T)>);
+impl<T: crate::Config> SignedExtension for CustomSignedExtension<T> {
+	const IDENTIFIER: &'static str = "CUSTOM";
+	type AccountId = T::AccountId;
+	type AdditionalSigned = ();
+	type Call = <T as Config>::RuntimeCall;
+	type Pre = ();
+	fn additional_signed(
+		&self,
+	) -> Result<Self::AdditionalSigned, frame_support::pallet_prelude::TransactionValidityError> {
+		Ok(())
+	}
+
+	fn pre_dispatch(
+		self,
+		who: &Self::AccountId,
+		call: &Self::Call,
+		info: &sp_runtime::traits::DispatchInfoOf<Self::Call>,
+		len: usize,
+	) -> Result<Self::Pre, frame_support::pallet_prelude::TransactionValidityError> {
+		Self::validate(&self, who, call, info, len).map(|_| ())
+	}
+}
