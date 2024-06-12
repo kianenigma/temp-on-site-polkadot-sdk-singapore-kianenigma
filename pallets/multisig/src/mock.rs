@@ -70,6 +70,7 @@ impl pallet_balances::Config for Test {
 }
 
 impl pallet_multisig::Config for Test {
+	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type RuntimeCall = RuntimeCall;

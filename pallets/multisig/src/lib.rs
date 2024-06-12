@@ -42,6 +42,9 @@ pub mod pallet {
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
+		/// The runtime origin type.
+		type RuntimeOrigin: From<crate::Origin> + From<frame_system::RawOrigin<Self::AccountId>>;
+
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_runtime_types/index.html
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
@@ -57,7 +60,7 @@ pub mod pallet {
 		/// A type representing all calls available in your runtime.
 		/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/frame_runtime_types/index.html
 		type RuntimeCall: Parameter
-			+ Dispatchable<RuntimeOrigin = Self::RuntimeOrigin>
+			+ Dispatchable<RuntimeOrigin = <Self as Config>::RuntimeOrigin>
 			+ GetDispatchInfo;
 
 		fn multi_sig_filter(call: <Self as Config>::RuntimeCall, m_type: MultisigType) -> bool;
@@ -91,6 +94,13 @@ pub mod pallet {
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
+	}
+
+	#[pallet::origin]
+	#[derive(Clone, Decode, Encode, TypeInfo, Eq, PartialEq, Debug, MaxEncodedLen)]
+	pub enum Origin {
+		SmallSpender,
+		BigSpender,
 	}
 
 	/// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -146,6 +156,27 @@ pub mod pallet {
 
 			// Re-dispatch some call on behalf of the caller.
 			let res = call.dispatch(RawOrigin::Signed(who).into());
+
+			// Here is some simple logic to show an example of "using" the `call` weight.
+			// This really doesn't make sense to do except for as an example.
+			Self::deposit_event(Event::<T>::CallWeight { weight: call_weight });
+
+			// Turn the result from the `dispatch` into our expected `DispatchResult` type.
+			res.map(|_| ()).map_err(|e| e.error)
+		}
+
+		/// An example of re-dispatching a call
+		pub fn dispatch_small_spender(
+			origin: OriginFor<T>,
+			call: Box<<T as Config>::RuntimeCall>,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+
+			// Get the weight of the call inputted by the user.
+			let call_weight = call.get_dispatch_info().weight;
+
+			// Re-dispatch some call on behalf of the caller.
+			let res = call.dispatch(Origin::SmallSpender.into());
 
 			// Here is some simple logic to show an example of "using" the `call` weight.
 			// This really doesn't make sense to do except for as an example.

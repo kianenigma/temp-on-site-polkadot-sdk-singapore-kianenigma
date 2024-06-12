@@ -178,6 +178,7 @@ use pallet_multisig::MultisigType;
 
 /// Configure the pallet-multisig in pallets/multisig.
 impl pallet_multisig::Config for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type NativeBalance = Balances;
 	type RuntimeCall = RuntimeCall;
@@ -300,6 +301,17 @@ impl pallet_treasury::AssetPriceLookup<Runtime> for SimplePriceLookup {
 	}
 }
 
+pub struct SmallSpenderCheck;
+impl EnsureOrigin<RuntimeOrigin> for SmallSpenderCheck {
+	type Success = ();
+	fn try_origin(o: RuntimeOrigin) -> Result<(), RuntimeOrigin> {
+		Result::<pallet_multisig::Origin, RuntimeOrigin>::from(o).and_then(|o| match o {
+			pallet_multisig::Origin::SmallSpender => Ok(()),
+			r => Err(RuntimeOrigin::from(r)),
+		})
+	}
+}
+
 /// Configure the pallet-treasury in pallets/treasury.
 impl pallet_treasury::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -307,6 +319,7 @@ impl pallet_treasury::Config for Runtime {
 	type Fungibles = Assets;
 	type CustomOrigin = EnsureRoot<AccountId>;
 	type AssetPriceLookup = SimplePriceLookup;
+	type SmallSpender = SmallSpenderCheck;
 }
 
 /// The signed extensions that are added to the runtime.

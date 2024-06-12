@@ -71,6 +71,9 @@ pub mod pallet {
 
 		// Here is an associated type to give you access to your simple asset price lookup function
 		type AssetPriceLookup: crate::AssetPriceLookup<Self>;
+
+		// Small Spender
+		type SmallSpender: EnsureOrigin<Self::RuntimeOrigin>;
 	}
 
 	/// The pallet's storage items.
@@ -154,8 +157,12 @@ pub mod pallet {
 			}
 		}
 
-		pub fn propose_spend(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+		pub fn propose_spend(
+			origin: OriginFor<T>,
+			who: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			T::SmallSpender::ensure_origin(origin)?;
 			Self::do_propose_spend(who, amount)
 		}
 

@@ -111,6 +111,7 @@ impl pallet_treasury::Config for Test {
 	type Fungibles = Assets;
 	type CustomOrigin = EnsureRoot<u64>;
 	type AssetPriceLookup = SimplePriceLookup;
+	type SmallSpender = EnsureRoot<u64>;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
