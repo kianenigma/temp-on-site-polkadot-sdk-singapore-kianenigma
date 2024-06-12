@@ -17,7 +17,7 @@ fn check_based_on_max_validators() {
 fn it_works_for_default_value() {
 	new_test_ext().execute_with(|| {
 		// Go past genesis block so events get deposited
-		System::set_block_number(1);
+		run_to_block(1);
 		// Dispatch a signed extrinsic.
 		assert_ok!(Dpos::do_something(RuntimeOrigin::signed(1), 43));
 		// Read pallet storage and assert an expected result.

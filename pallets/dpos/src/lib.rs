@@ -91,6 +91,28 @@ pub mod pallet {
 	#[pallet::storage]
 	pub type Delegations<T: Config> = StorageMap<Key = T::AccountId, Value = DelegationInfo<T>>;
 
+	#[derive(TypeInfo, Encode, Decode, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	pub struct ValidatorBacking<T: Config> {
+		who: T::AccountId,
+		amount: BalanceOf<T>,
+	}
+
+	// This vector should always be sorted, with the lowest amount delegated at the end.
+	// When a delegator delegates to a validator, and we increase their backing, we check if that
+	// validator has more delegation than the last element in this vec.
+	//
+	// If so, we pop and swap.
+	//
+	// We must worry though that this validator loses delegations, and then stays in this list, but
+	// isn't the highest quality....
+	//
+	// BUT, we provide a simple extrinsic for **anyone** to claim that a validator should be in this
+	// list.
+	#[pallet::storage]
+	pub type TopValidators<T: Config> =
+		StorageValue<Value = BoundedVec<ValidatorBacking<T>, ConstU32<100>>>;
+
 	/// Pallets use events to inform users when important changes are made.
 	/// https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error
 	#[pallet::event]
@@ -163,6 +185,22 @@ pub mod pallet {
 			// Return a successful `DispatchResult`
 			Ok(())
 		}
+
+		pub fn report_top_validator(origin: OriginFor<T>, _who: T::AccountId) -> DispatchResult {
+			let _who_cares = ensure_signed(origin)?;
+			//let validator_status = Validators::<T>::get(who);
+
+			let _top_validators = TopValidators::<T>::get();
+
+			// we assume top_validators is stored
+			// let last_validator = top_validators.last();
+			// ensure!(last_validator.backing < validator_status.backing);
+
+			// top_validators.insert(new_validator).sort().truncate_to_100()
+
+			// try to see if validator status is better than the last guy
+			Ok(())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -172,5 +210,16 @@ pub mod pallet {
 			// `pallet-authorship`.
 			T::FindAuthor::find_author::<'_, Vec<_>>(Default::default())
 		}
+	}
+}
+
+pub trait DoSlash<T: Config> {
+	fn do_slash(_who: T::AccountId, _amount: sp_runtime::Perbill);
+}
+impl<T: Config> DoSlash<T> for Pallet<T> {
+	fn do_slash(_who: T::AccountId, _amount: sp_runtime::Perbill) {
+		// lookup who
+		// get all delegators
+		// reduce who and delegators by amount
 	}
 }
